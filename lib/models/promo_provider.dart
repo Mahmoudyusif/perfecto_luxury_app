@@ -38,13 +38,7 @@ class PromoProvider with ChangeNotifier {
   PromoCode? get appliedPromo => _appliedPromo;
 
   PromoProvider() {
-    if (!kIsWeb) {
-      _listenToPromos();
-    } else {
-      _activePromos = [
-        PromoCode(code: "PERFECTO10", discountPercent: 10, expiryDate: DateTime.now().add(const Duration(days: 30)), minOrderAmount: 1000)
-      ];
-    }
+    _listenToPromos();
   }
 
   void _listenToPromos() {
@@ -80,8 +74,7 @@ class PromoProvider with ChangeNotifier {
       expiryDate: DateTime.now().add(const Duration(days: 30)),
       minOrderAmount: minAmount,
     );
-    if (!kIsWeb) await FirebaseFirestore.instance.collection('promos').doc(code.toUpperCase()).set(newPromo.toJson());
+    await FirebaseFirestore.instance.collection('promos').doc(code.toUpperCase()).set(newPromo.toJson());
   }
 }
-
-final promoProvider = PromoProvider();
+// Removed promoProvider global instance

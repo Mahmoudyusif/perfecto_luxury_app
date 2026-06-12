@@ -115,11 +115,10 @@ class OrderProvider with ChangeNotifier {
       final oldStatus = order.status;
       order.status = newStatus;
       
-      // إضافة النقاط مباشرة في Firestore للعميل
       if (newStatus == OrderStatus.delivered && oldStatus != OrderStatus.delivered) {
-        int points = (order.totalAmount / 100).floor();
+        int pointsToAdd = (order.totalAmount / 100).floor();
         await FirebaseFirestore.instance.collection('users_v4').doc(order.customerPhone).update({
-          'loyaltyPoints': FieldValue.increment(points)
+          'loyaltyPoints': FieldValue.increment(pointsToAdd)
         });
       }
 
@@ -154,3 +153,4 @@ class OrderProvider with ChangeNotifier {
     await FirebaseFirestore.instance.collection('orders').doc(orderId).set(newOrder.toJson());
   }
 }
+// Removed orderProvider global instance

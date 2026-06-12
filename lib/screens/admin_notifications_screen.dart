@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../config/app_colors.dart';
 
 class AdminNotificationsScreen extends StatefulWidget {
   const AdminNotificationsScreen({super.key});
@@ -14,7 +15,6 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
   final _bodyController = TextEditingController();
   bool _isSending = false;
 
-  // وظيفة لتجربة الإشعار فوراً على جهازك
   Future<void> _testLocally() async {
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails('perfecto_channel', 'Perfecto Notifications',
@@ -69,7 +69,7 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
               height: 55,
               child: ElevatedButton(
                 onPressed: _isSending ? null : _sendNotification,
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryBlack),
                 child: Text(isAr ? "إرسال لجميع العملاء" : "PUSH TO ALL USERS", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
               ),
             ),

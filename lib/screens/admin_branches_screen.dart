@@ -58,6 +58,7 @@ class AdminBranchesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool isAr = Localizations.localeOf(context).languageCode == 'ar';
+    // مراقبة الفروع لحظياً
     final branches = context.watch<BranchProvider>().branches;
 
     return Scaffold(

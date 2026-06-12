@@ -28,7 +28,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
     if (kIsWeb) {
-      // NOTE: Placeholders used for public GitHub repository security.
+      // NOTE: Placeholders for GitHub security. 
       // Replace with your real Firebase config locally if needed.
       await Firebase.initializeApp(
         options: const FirebaseOptions(
@@ -41,6 +41,7 @@ void main() async {
       );
     } else {
       await Firebase.initializeApp();
+      // تهيئة نظام الإشعارات للموبايل
       await NotificationService.initialize();
     }
   } catch (e) {

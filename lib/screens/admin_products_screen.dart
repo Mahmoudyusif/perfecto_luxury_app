@@ -59,7 +59,7 @@ class AdminProductsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool isAr = Localizations.localeOf(context).languageCode == 'ar';
-    // استخدام watch لمراقبة التغييرات في قائمة المنتجات
+    // مراقبة المنتجات لحظياً عبر Provider
     final products = context.watch<ProductProvider>().products;
 
     return Scaffold(

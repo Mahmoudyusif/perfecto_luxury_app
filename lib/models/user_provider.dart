@@ -113,7 +113,7 @@ class UserProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // تحديث البيانات (الوظيفة التي سببت الخطأ)
+  // وظائف التحديث التي كانت تسبب الخطأ
   Future<void> updateProfile(String name, String phone) async {
     if (_currentUser == null) return;
     await FirebaseFirestore.instance.collection('users_v4').doc(_currentUser!.phone).update({
@@ -121,7 +121,6 @@ class UserProvider with ChangeNotifier {
     });
   }
 
-  // تغيير كلمة المرور (الوظيفة التي سببت الخطأ)
   Future<bool> changePassword(String oldPass, String newPass) async {
     if (_currentUser == null || _currentUser!.password != oldPass) return false;
     await FirebaseFirestore.instance.collection('users_v4').doc(_currentUser!.phone).update({
@@ -136,13 +135,6 @@ class UserProvider with ChangeNotifier {
     List<String> list = List.from(_currentUser!.wishlistIds);
     list.contains(productId) ? list.remove(productId) : list.add(productId);
     await FirebaseFirestore.instance.collection('users_v4').doc(_currentUser!.phone).update({'wishlistIds': list});
-  }
-
-  Future<void> addPoints(int points) async {
-    if (_currentUser == null) return;
-    await FirebaseFirestore.instance.collection('users_v4').doc(_currentUser!.phone).update({
-      'loyaltyPoints': _currentUser!.loyaltyPoints + points
-    });
   }
 
   Future<bool> login(String phone, String password) async {

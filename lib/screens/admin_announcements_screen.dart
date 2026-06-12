@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/announcement_provider.dart';
+import '../config/app_colors.dart';
 
 class AdminAnnouncementsScreen extends StatefulWidget {
   const AdminAnnouncementsScreen({super.key});
@@ -14,11 +16,11 @@ class _AdminAnnouncementsScreenState extends State<AdminAnnouncementsScreen> {
   @override
   Widget build(BuildContext context) {
     bool isAr = Localizations.localeOf(context).languageCode == 'ar';
+    
     return Scaffold(
       appBar: AppBar(title: Text(isAr ? "إدارة شريط العروض" : "TOP BAR OFFERS")),
-      body: ListenableBuilder(
-        listenable: announcementProvider,
-        builder: (context, _) => Column(
+      body: Consumer<AnnouncementProvider>(
+        builder: (context, provider, child) => Column(
           children: [
             Padding(
               padding: const EdgeInsets.all(20),
@@ -30,6 +32,7 @@ class _AdminAnnouncementsScreenState extends State<AdminAnnouncementsScreen> {
                       decoration: InputDecoration(
                         hintText: isAr ? "اكتب عرض جديد هنا..." : "Add new offer...",
                         border: const OutlineInputBorder(),
+                        focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: AppColors.primaryBlack)),
                       ),
                     ),
                   ),
@@ -37,25 +40,30 @@ class _AdminAnnouncementsScreenState extends State<AdminAnnouncementsScreen> {
                   IconButton(
                     onPressed: () {
                       if (_controller.text.isNotEmpty) {
-                        announcementProvider.addAnnouncement(_controller.text);
+                        provider.addAnnouncement(_controller.text);
                         _controller.clear();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Offer added successfully!"))
+                        );
                       }
                     },
-                    icon: const Icon(Icons.add_circle, size: 40, color: Colors.black),
+                    icon: const Icon(Icons.add_circle, size: 40, color: AppColors.primaryBlack),
                   )
                 ],
               ),
             ),
             const Divider(),
             Expanded(
-              child: ListView.builder(
-                itemCount: announcementProvider.messages.length,
-                itemBuilder: (ctx, i) => ListTile(
-                  leading: const Icon(Icons.label_important_outline),
-                  title: Text(announcementProvider.messages[i]),
-                  trailing: const Icon(Icons.check_circle, color: Colors.green, size: 18),
-                ),
-              ),
+              child: provider.messages.isEmpty 
+                ? Center(child: Text(isAr ? "لا توجد عروض حالياً" : "No offers active"))
+                : ListView.builder(
+                    itemCount: provider.messages.length,
+                    itemBuilder: (ctx, i) => ListTile(
+                      leading: const Icon(Icons.campaign_outlined, color: AppColors.accentGold),
+                      title: Text(provider.messages[i], style: const TextStyle(fontSize: 13)),
+                      trailing: const Icon(Icons.check_circle, color: Colors.green, size: 16),
+                    ),
+                  ),
             ),
           ],
         ),

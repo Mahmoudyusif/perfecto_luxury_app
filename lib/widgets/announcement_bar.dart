@@ -23,8 +23,9 @@ class _AnnouncementBarState extends State<AnnouncementBar> {
   }
 
   void _startScrolling() {
-    _timer = Timer.periodic(const Duration(seconds: 4), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
       if (_pageController.hasClients) {
+        // الوصول للمزود عبر context.read لتحديد الصفحة التالية
         final messages = context.read<AnnouncementProvider>().messages;
         if (messages.isNotEmpty) {
           _currentIndex = (_currentIndex + 1) % messages.length;
@@ -47,35 +48,32 @@ class _AnnouncementBarState extends State<AnnouncementBar> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<AnnouncementProvider>(
-      builder: (context, provider, child) {
-        final messages = provider.messages;
-        if (messages.isEmpty) return const SizedBox.shrink();
+    // استخدام watch لمراقبة أي رسائل جديدة يضيفها المدير
+    final messages = context.watch<AnnouncementProvider>().messages;
+    if (messages.isEmpty) return const SizedBox.shrink();
 
-        return Container(
-          height: 35,
-          width: double.infinity,
-          color: Colors.black,
-          child: PageView.builder(
-            controller: _pageController,
-            itemCount: messages.length,
-            itemBuilder: (context, index) {
-              return Center(
-                child: Text(
-                  messages[index].toUpperCase(),
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.cairo(
-                    color: Colors.white, 
-                    fontSize: 9, 
-                    fontWeight: FontWeight.bold, 
-                    letterSpacing: 1.2
-                  ),
-                ),
-              );
-            },
-          ),
-        );
-      },
+    return Container(
+      height: 35,
+      width: double.infinity,
+      color: Colors.black,
+      child: PageView.builder(
+        controller: _pageController,
+        itemCount: messages.length,
+        itemBuilder: (context, index) {
+          return Center(
+            child: Text(
+              messages[index].toUpperCase(),
+              textAlign: TextAlign.center,
+              style: GoogleFonts.cairo(
+                color: Colors.white, 
+                fontSize: 9, 
+                fontWeight: FontWeight.bold, 
+                letterSpacing: 1.2
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }

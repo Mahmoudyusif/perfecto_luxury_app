@@ -6,7 +6,8 @@ plugins {
 }
 
 android {
-    namespace = "com.mahmoud.perfecto"
+    namespace = "com.example.perfecto"
+    // تحديث الإصدار إلى 36 لحل مشكلة توافق المكتبات الحديثة
     compileSdk = 36
 
     compileOptions {
@@ -20,8 +21,8 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.mahmoud.perfecto"
-        minSdk = flutter.minSdkVersion 
+        applicationId = "com.example.perfecto"
+        minSdk = flutter.minSdkVersion // رفع الحد الأدنى لضمان استقرار الإشعارات والمكتبات
         targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -29,10 +30,9 @@ android {
 
     buildTypes {
         getByName("release") {
-            // استخدام الصيغ الصحيحة لـ Kotlin DSL
+            signingConfig = signingConfigs.getByName("debug")
             isMinifyEnabled = false
             isShrinkResources = false
-            signingConfig = signingConfigs.getByName("debug")
         }
     }
 }
