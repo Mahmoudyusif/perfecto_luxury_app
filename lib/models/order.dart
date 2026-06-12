@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'cart.dart';
 import 'product.dart';
-import 'user_provider.dart';
 
 enum OrderStatus { pending, processing, shipped, delivered, cancelled }
 
@@ -44,7 +43,6 @@ class OrderItem {
     }
   }
 
-  // الوظيفة المفقودة التي سببت الخطأ
   String get remainingTimeText {
     if (estimatedDelivery == null || status == OrderStatus.delivered || status == OrderStatus.cancelled) return "N/A";
     final diff = estimatedDelivery!.difference(DateTime.now());
@@ -113,12 +111,18 @@ class OrderProvider with ChangeNotifier {
   Future<void> updateOrderStatus(String id, OrderStatus newStatus) async {
     final idx = _orders.indexWhere((o) => o.id == id);
     if (idx != -1) {
-      final oldStatus = _orders[idx].status;
-      _orders[idx].status = newStatus;
+      final order = _orders[idx];
+      final oldStatus = order.status;
+      order.status = newStatus;
+      
+      // إضافة النقاط مباشرة في Firestore للعميل
       if (newStatus == OrderStatus.delivered && oldStatus != OrderStatus.delivered) {
-        int points = (_orders[idx].totalAmount / 100).floor();
-        await userProvider.addPoints(points);
+        int points = (order.totalAmount / 100).floor();
+        await FirebaseFirestore.instance.collection('users_v4').doc(order.customerPhone).update({
+          'loyaltyPoints': FieldValue.increment(points)
+        });
       }
+
       notifyListeners();
       await FirebaseFirestore.instance.collection('orders').doc(id).update({'status': newStatus.index});
     }
@@ -150,5 +154,3 @@ class OrderProvider with ChangeNotifier {
     await FirebaseFirestore.instance.collection('orders').doc(orderId).set(newOrder.toJson());
   }
 }
-
-final orderProvider = OrderProvider();

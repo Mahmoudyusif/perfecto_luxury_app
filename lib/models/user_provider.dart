@@ -113,8 +113,24 @@ class UserProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  // تحديث البيانات (الوظيفة التي سببت الخطأ)
+  Future<void> updateProfile(String name, String phone) async {
+    if (_currentUser == null) return;
+    await FirebaseFirestore.instance.collection('users_v4').doc(_currentUser!.phone).update({
+      'fullName': name,
+    });
+  }
+
+  // تغيير كلمة المرور (الوظيفة التي سببت الخطأ)
+  Future<bool> changePassword(String oldPass, String newPass) async {
+    if (_currentUser == null || _currentUser!.password != oldPass) return false;
+    await FirebaseFirestore.instance.collection('users_v4').doc(_currentUser!.phone).update({
+      'password': newPass,
+    });
+    return true;
+  }
+
   bool isInWishlist(String productId) => _currentUser?.wishlistIds.contains(productId) ?? false;
-  
   Future<void> toggleWishlist(String productId) async {
     if (_currentUser == null || _isAdminMode) return;
     List<String> list = List.from(_currentUser!.wishlistIds);
@@ -123,8 +139,10 @@ class UserProvider with ChangeNotifier {
   }
 
   Future<void> addPoints(int points) async {
-    if (_currentUser == null || _isAdminMode) return;
-    await FirebaseFirestore.instance.collection('users_v4').doc(_currentUser!.phone).update({'loyaltyPoints': _currentUser!.loyaltyPoints + points});
+    if (_currentUser == null) return;
+    await FirebaseFirestore.instance.collection('users_v4').doc(_currentUser!.phone).update({
+      'loyaltyPoints': _currentUser!.loyaltyPoints + points
+    });
   }
 
   Future<bool> login(String phone, String password) async {
@@ -144,4 +162,3 @@ class UserProvider with ChangeNotifier {
     } catch (e) { return false; }
   }
 }
-// تم حذف النسخة العالمية userProvider لضمان الاحترافية

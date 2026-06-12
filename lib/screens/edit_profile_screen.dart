@@ -20,7 +20,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
-    // الوصول للبيانات الحالية للعميل
+    // الوصول للبيانات الحالية للعميل عبر الـ Provider
     final user = context.read<UserProvider>().currentUser;
     _nameController = TextEditingController(text: user?.fullName ?? "");
     _phoneController = TextEditingController(text: user?.phone ?? "");
@@ -29,6 +29,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     bool isAr = Localizations.localeOf(context).languageCode == 'ar';
+    // الوصول للمزود لتنفيذ العمليات
     final userProvider = context.read<UserProvider>();
 
     return Scaffold(
@@ -64,10 +65,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   onPressed: () async {
                     setState(() => _isLoading = true);
                     
-                    // تحديث الاسم
+                    // تحديث الاسم (تم إصلاح استدعاء الوظيفة هنا)
                     await userProvider.updateProfile(_nameController.text, _phoneController.text);
                     
-                    // تحديث كلمة المرور إذا تم إدخالها
+                    // تحديث كلمة المرور (تم إصلاح استدعاء الوظيفة هنا)
                     if (_oldPassController.text.isNotEmpty && _newPassController.text.isNotEmpty) {
                       bool passChanged = await userProvider.changePassword(_oldPassController.text, _newPassController.text);
                       if (!passChanged && mounted) {
