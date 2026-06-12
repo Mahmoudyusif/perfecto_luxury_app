@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -88,7 +87,6 @@ class UserProvider with ChangeNotifier {
   bool isUserExists(String phone) => _allRegisteredUsers.any((u) => u.phone == phone);
 
   Future<void> registerUser(String name, String phone, String password) async {
-    // جعل المستخدم مفعل (verified) تلقائياً وتسجيل دخوله فوراً
     final newUser = UserData(fullName: name, phone: phone, password: password, isVerified: true);
     await FirebaseFirestore.instance.collection('users_v4').doc(phone).set(newUser.toJson());
     _currentUser = newUser;
@@ -115,18 +113,8 @@ class UserProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> updateProfile(String name, String phone) async {
-    if (_currentUser == null) return;
-    await FirebaseFirestore.instance.collection('users_v4').doc(_currentUser!.phone).update({'fullName': name});
-  }
-
-  Future<bool> changePassword(String oldPass, String newPass) async {
-    if (_currentUser == null || _currentUser!.password != oldPass) return false;
-    await FirebaseFirestore.instance.collection('users_v4').doc(_currentUser!.phone).update({'password': newPass});
-    return true;
-  }
-
   bool isInWishlist(String productId) => _currentUser?.wishlistIds.contains(productId) ?? false;
+  
   Future<void> toggleWishlist(String productId) async {
     if (_currentUser == null || _isAdminMode) return;
     List<String> list = List.from(_currentUser!.wishlistIds);
@@ -156,5 +144,4 @@ class UserProvider with ChangeNotifier {
     } catch (e) { return false; }
   }
 }
-
-final userProvider = UserProvider();
+// تم حذف النسخة العالمية userProvider لضمان الاحترافية

@@ -66,6 +66,4 @@ class CartProvider with ChangeNotifier {
     notifyListeners();
   }
 }
-
-// Global instance
-final cartProvider = CartProvider();
+// تم حذف النسخة العالمية cartProvider لضمان الاحترافية

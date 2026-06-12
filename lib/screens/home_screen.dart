@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:async';
-import '../models/product.dart';
 import '../models/product_provider.dart';
+import '../widgets/shimmer_product_card.dart';
+import '../config/app_colors.dart';
 import 'product_details_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -15,7 +17,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   static const double horizontalPadding = 24.0;
   final PageController _pageController = PageController();
-  int _currentPage = 0;
+  int _currentIndex = 0;
   Timer? _timer;
 
   final List<String> _bannerImages = [
@@ -31,10 +33,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _startTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 4), (timer) {
       if (_pageController.hasClients) {
-        _currentPage = (_currentPage + 1) % _bannerImages.length;
-        _pageController.animateToPage(_currentPage, duration: const Duration(milliseconds: 800), curve: Curves.easeInOutCubic);
+        _currentIndex = (_currentIndex + 1) % _bannerImages.length;
+        _pageController.animateToPage(
+          _currentIndex, 
+          duration: const Duration(milliseconds: 800), 
+          curve: Curves.easeInOutCubic
+        );
       }
     });
   }
@@ -49,17 +55,16 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     bool isAr = Localizations.localeOf(context).languageCode == 'ar';
-    // تقليل ارتفاع الهيدر ليكون 45% من طول الشاشة بدلاً من 70%
-    final double headerHeight = MediaQuery.of(context).size.height * 0.45; 
+    final double headerHeight = MediaQuery.of(context).size.height * 0.45;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.backgroundGrey,
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- 1. Hero Slider (Sized Down) ---
+            // --- 1. Hero Slider ---
             Stack(
               alignment: Alignment.center,
               children: [
@@ -69,8 +74,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: PageView.builder(
                     controller: _pageController,
                     itemCount: _bannerImages.length,
-                    onPageChanged: (i) => setState(() => _currentPage = i),
-                    itemBuilder: (ctx, i) => CachedNetworkImage(imageUrl: _bannerImages[i], fit: BoxFit.cover),
+                    onPageChanged: (i) => setState(() => _currentIndex = i),
+                    itemBuilder: (ctx, i) => CachedNetworkImage(
+                      imageUrl: _bannerImages[i], 
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Container(color: AppColors.shimmerBase),
+                    ),
                   ),
                 ),
                 Positioned(
@@ -78,9 +87,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Row(
                     children: List.generate(_bannerImages.length, (index) => Container(
                       margin: const EdgeInsets.symmetric(horizontal: 4),
-                      width: _currentPage == index ? 7 : 5,
+                      width: _currentIndex == index ? 7 : 5,
                       height: 5,
-                      decoration: BoxDecoration(shape: BoxShape.circle, color: _currentPage == index ? Colors.white : Colors.white38),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle, 
+                        color: _currentIndex == index ? Colors.white : Colors.white38
+                      ),
                     )),
                   ),
                 ),
@@ -89,10 +101,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SizedBox(height: 30),
 
-            // --- 2. Collections (Dresses, Skirts, Bags, Casual) ---
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: horizontalPadding),
-              child: Text(isAr ? "اكتشفي مجموعاتنا" : "OUR COLLECTIONS", style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900, letterSpacing: 2)),
+              child: Text(
+                isAr ? "اكتشفي مجموعاتنا" : "OUR COLLECTIONS", 
+                style: const TextStyle(
+                  fontSize: 13, 
+                  fontWeight: FontWeight.w900, 
+                  letterSpacing: 2,
+                  color: AppColors.primaryBlack
+                )
+              ),
             ),
             const SizedBox(height: 20),
 
@@ -114,13 +133,26 @@ class _HomeScreenState extends State<HomeScreen> {
       child: InkWell(
         onTap: () => _openCollection(context, title, category),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: BorderRadius.circular(8),
           child: Stack(
             alignment: Alignment.center,
             children: [
-              CachedNetworkImage(imageUrl: imageUrl, height: 160, width: double.infinity, fit: BoxFit.cover),
+              CachedNetworkImage(
+                imageUrl: imageUrl, 
+                height: 160, 
+                width: double.infinity, 
+                fit: BoxFit.cover
+              ),
               Container(height: 160, color: Colors.black.withOpacity(0.35)),
-              Text(title, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 2)),
+              Text(
+                title, 
+                style: const TextStyle(
+                  color: Colors.white, 
+                  fontSize: 16, 
+                  fontWeight: FontWeight.w900, 
+                  letterSpacing: 2
+                )
+              ),
             ],
           ),
         ),
@@ -129,43 +161,97 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _openCollection(BuildContext context, String title, String category) {
-    final products = productProvider.products.where((p) => p.category == category).toList();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (ctx) => DraggableScrollableSheet(
-        initialChildSize: 0.9,
-        expand: false,
-        builder: (_, controller) => Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
-            ),
-            const Divider(height: 1),
-            Expanded(
-              child: products.isEmpty 
-                ? Center(child: Text(Localizations.localeOf(context).languageCode == 'ar' ? "قريباً في بيرفيكتو" : "Coming Soon"))
-                : GridView.builder(
-                    controller: controller,
-                    padding: const EdgeInsets.all(16),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, childAspectRatio: 0.65, crossAxisSpacing: 15, mainAxisSpacing: 20),
-                    itemCount: products.length,
-                    itemBuilder: (ctx, i) => InkWell(
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProductDetailsScreen(product: products[i]))),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(child: ClipRRect(borderRadius: BorderRadius.circular(4), child: CachedNetworkImage(imageUrl: products[i].imageUrl, fit: BoxFit.cover, width: double.infinity))),
-                          const SizedBox(height: 10),
-                          Text(products[i].getName(context), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
-                          Text("${products[i].price} EGP", style: const TextStyle(color: Colors.grey, fontSize: 10)),
-                        ],
-                      ),
-                    ),
+      builder: (ctx) {
+        return Consumer<ProductProvider>(
+          builder: (context, provider, child) {
+            return DraggableScrollableSheet(
+              initialChildSize: 0.9,
+              expand: false,
+              builder: (_, controller) => Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
                   ),
+                  const Divider(height: 1),
+                  Expanded(
+                    child: provider.isLoading 
+                      ? _buildShimmerGrid() 
+                      : _buildProductGrid(context, controller, category, provider),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      }
+    );
+  }
+
+  Widget _buildShimmerGrid() {
+    return GridView.builder(
+      padding: const EdgeInsets.all(16),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2, 
+        childAspectRatio: 0.65, 
+        crossAxisSpacing: 15, 
+        mainAxisSpacing: 20
+      ),
+      itemCount: 6,
+      itemBuilder: (ctx, i) => const ShimmerProductCard(),
+    );
+  }
+
+  Widget _buildProductGrid(BuildContext context, ScrollController controller, String category, ProductProvider provider) {
+    final products = provider.products.where((p) => p.category == category).toList();
+    
+    if (products.isEmpty) {
+      return Center(
+        child: Text(
+          Localizations.localeOf(context).languageCode == 'ar' ? "قريباً في بيرفيكتو" : "Coming Soon"
+        )
+      );
+    }
+
+    return GridView.builder(
+      controller: controller,
+      padding: const EdgeInsets.all(16),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2, 
+        childAspectRatio: 0.65, 
+        crossAxisSpacing: 15, 
+        mainAxisSpacing: 20
+      ),
+      itemCount: products.length,
+      itemBuilder: (ctx, i) => InkWell(
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProductDetailsScreen(product: products[i]))),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8), 
+                child: CachedNetworkImage(
+                  imageUrl: products[i].imageUrl, 
+                  fit: BoxFit.cover, 
+                  width: double.infinity,
+                  placeholder: (context, url) => Container(color: AppColors.shimmerBase),
+                )
+              )
+            ),
+            const SizedBox(height: 10),
+            Text(
+              products[i].getName(context), 
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11)
+            ),
+            Text(
+              "${products[i].price} EGP", 
+              style: const TextStyle(color: Colors.grey, fontSize: 10)
             ),
           ],
         ),

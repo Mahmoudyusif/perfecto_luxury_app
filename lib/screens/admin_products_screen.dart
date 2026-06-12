@@ -1,32 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/product.dart';
 import '../models/product_provider.dart';
+import '../config/app_colors.dart';
 
-class AdminProductsScreen extends StatefulWidget {
+class AdminProductsScreen extends StatelessWidget {
   const AdminProductsScreen({super.key});
 
-  @override
-  State<AdminProductsScreen> createState() => _AdminProductsScreenState();
-}
-
-class _AdminProductsScreenState extends State<AdminProductsScreen> {
-  @override
-  void initState() {
-    super.initState();
-    productProvider.addListener(_refresh);
-  }
-
-  @override
-  void dispose() {
-    productProvider.removeListener(_refresh);
-    super.dispose();
-  }
-
-  void _refresh() {
-    if (mounted) setState(() {});
-  }
-
-  void _showAddProductDialog() {
+  void _showAddProductDialog(BuildContext context) {
     final nameAr = TextEditingController();
     final nameEn = TextEditingController();
     final price = TextEditingController();
@@ -58,13 +39,13 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
                   id: DateTime.now().millisecondsSinceEpoch.toString(),
                   nameAr: nameAr.text,
                   nameEn: nameEn.text,
-                  descriptionAr: "وصف المنتج الجديد",
-                  descriptionEn: "New product description",
+                  descriptionAr: "New item in collection",
+                  descriptionEn: "New item in collection",
                   price: double.parse(price.text),
                   category: category.text,
                   colorImages: {Colors.black: imgUrl.text},
                 );
-                productProvider.addProduct(newProd);
+                context.read<ProductProvider>().addProduct(newProd);
                 Navigator.pop(ctx);
               }
             },
@@ -78,14 +59,15 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
   @override
   Widget build(BuildContext context) {
     bool isAr = Localizations.localeOf(context).languageCode == 'ar';
-    final products = productProvider.products;
+    // استخدام watch لمراقبة التغييرات في قائمة المنتجات
+    final products = context.watch<ProductProvider>().products;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(isAr ? "إدارة المنتجات" : "PRODUCT CATALOG"),
       ),
-      body: productProvider.isLoading 
-        ? const Center(child: CircularProgressIndicator(color: Colors.black))
+      body: products.isEmpty 
+        ? const Center(child: Text("No products yet."))
         : ListView.builder(
             padding: const EdgeInsets.all(16),
             itemCount: products.length,
@@ -97,9 +79,14 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
                 child: ListTile(
                   leading: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: Image.network(product.imageUrl, width: 50, height: 50, fit: BoxFit.cover, errorBuilder: (_,__,___) => const Icon(Icons.broken_image)),
+                    child: Image.network(
+                      product.imageUrl, 
+                      width: 50, height: 50, 
+                      fit: BoxFit.cover, 
+                      errorBuilder: (_,__,___) => const Icon(Icons.broken_image)
+                    ),
                   ),
-                  title: Text(product.getName(context), style: const TextStyle(fontWeight: FontWeight.bold)),
+                  title: Text(product.getName(context), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                   subtitle: Text("${product.price} EGP"),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -108,12 +95,12 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
                         value: !product.isOutOfStock,
                         activeColor: Colors.green,
                         onChanged: (val) {
-                          productProvider.toggleStock(product.id, !val);
+                          context.read<ProductProvider>().toggleStock(product.id, !val);
                         },
                       ),
                       IconButton(
-                        icon: const Icon(Icons.delete_outline, color: Colors.red),
-                        onPressed: () => productProvider.deleteProduct(product.id),
+                        icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                        onPressed: () => context.read<ProductProvider>().deleteProduct(product.id),
                       ),
                     ],
                   ),
@@ -122,9 +109,9 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
             },
           ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.black,
+        backgroundColor: AppColors.primaryBlack,
         child: const Icon(Icons.add, color: Colors.white),
-        onPressed: _showAddProductDialog,
+        onPressed: () => _showAddProductDialog(context),
       ),
     );
   }

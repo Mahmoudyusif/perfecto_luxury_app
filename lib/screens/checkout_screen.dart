@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+// Models & Providers
 import '../models/cart.dart';
 import '../models/order.dart';
 import '../models/user_provider.dart';
 import '../models/promo_provider.dart';
+
+// Config
+import '../config/app_colors.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final double totalAmount;
@@ -25,25 +31,39 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   ];
 
   void _applyPromo() {
+    final promoProvider = context.read<PromoProvider>();
     bool success = promoProvider.validateAndApply(_promoController.text, widget.totalAmount);
     if (success) {
       setState(() {
         discount = widget.totalAmount * (promoProvider.appliedPromo!.discountPercent / 100);
       });
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Promo Code Applied!"), backgroundColor: Colors.green));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Promo Code Applied!"), backgroundColor: Colors.green)
+      );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Invalid or expired code"), backgroundColor: Colors.red));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Invalid or expired code"), backgroundColor: Colors.red)
+      );
     }
   }
 
   Future<void> _processPayment() async {
     if (_addressController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Please enter your detailed address")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter your detailed address"))
+      );
       return;
     }
 
     setState(() => isProcessing = true);
+    
+    // Simulate network delay
     await Future.delayed(const Duration(seconds: 2));
+
+    final userProvider = context.read<UserProvider>();
+    final cartProvider = context.read<CartProvider>();
+    final orderProvider = context.read<OrderProvider>();
+    final promoProvider = context.read<PromoProvider>();
 
     final user = userProvider.currentUser;
     if (user != null) {
@@ -61,7 +81,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
 
     setState(() => isProcessing = false);
-    _showOrderConfirmedDialog();
+    if (mounted) _showOrderConfirmedDialog();
   }
 
   void _showOrderConfirmedDialog() {
@@ -85,8 +105,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               Navigator.pop(ctx);
               Navigator.popUntil(context, (route) => route.isFirst);
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
-            child: const Text("BACK TO SHOPPING", style: TextStyle(color: Colors.white)),
+            child: const Text("BACK TO SHOPPING"),
           ),
         ],
       ),
@@ -99,10 +118,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     bool isAr = Localizations.localeOf(context).languageCode == 'ar';
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(title: Text(isAr ? "إتمام الطلب" : "SECURE CHECKOUT")),
       body: isProcessing 
-        ? const Center(child: CircularProgressIndicator(color: Colors.black))
+        ? const Center(child: CircularProgressIndicator())
         : SingleChildScrollView(
             padding: const EdgeInsets.all(24.0),
             child: Column(
@@ -111,16 +129,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 // Promo Code Section
                 Container(
                   padding: const EdgeInsets.all(15),
-                  decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(12)),
+                  decoration: BoxDecoration(
+                    color: Colors.white, 
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey[200]!)
+                  ),
                   child: Row(
                     children: [
                       Expanded(
                         child: TextField(
                           controller: _promoController,
-                          decoration: const InputDecoration(hintText: "Promo Code", border: InputBorder.none),
+                          decoration: const InputDecoration(
+                            hintText: "Promo Code", 
+                            border: InputBorder.none
+                          ),
                         ),
                       ),
-                      TextButton(onPressed: _applyPromo, child: const Text("APPLY", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black))),
+                      TextButton(
+                        onPressed: _applyPromo, 
+                        child: const Text("APPLY", style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryBlack))
+                      ),
                     ],
                   ),
                 ),
@@ -140,19 +168,51 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
                 const SizedBox(height: 30),
                 const Text("Payment Method", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                RadioListTile(value: 'cash', groupValue: selectedPayment, title: const Text("Cash on Delivery"), onChanged: (v) => setState(() => selectedPayment = v!)),
-                RadioListTile(value: 'card', groupValue: selectedPayment, title: const Text("Credit Card"), onChanged: (v) => setState(() => selectedPayment = v!)),
+                RadioListTile(
+                  value: 'cash', 
+                  groupValue: selectedPayment, 
+                  title: const Text("Cash on Delivery"), 
+                  onChanged: (v) => setState(() => selectedPayment = v!)
+                ),
+                RadioListTile(
+                  value: 'card', 
+                  groupValue: selectedPayment, 
+                  title: const Text("Credit Card"), 
+                  onChanged: (v) => setState(() => selectedPayment = v!)
+                ),
                 const SizedBox(height: 40),
                 Container(
                   padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(15)),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryBlack, 
+                    borderRadius: BorderRadius.circular(15)
+                  ),
                   child: Column(
                     children: [
-                      if (discount > 0) Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text("Discount", style: TextStyle(color: Colors.greenAccent)), Text("-$discount EGP", style: const TextStyle(color: Colors.greenAccent))]),
-                      const SizedBox(height: 10),
-                      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text("Total Payable", style: TextStyle(color: Colors.white, fontSize: 18)), Text("${finalTotal.toInt()} EGP", style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold))]),
+                      if (discount > 0) 
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween, 
+                            children: [
+                              const Text("Discount", style: TextStyle(color: Colors.greenAccent)), 
+                              Text("-$discount EGP", style: const TextStyle(color: Colors.greenAccent))
+                            ]
+                          ),
+                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween, 
+                        children: [
+                          const Text("Total Payable", style: TextStyle(color: Colors.white, fontSize: 16)), 
+                          Text("${finalTotal.toInt()} EGP", style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold))
+                        ]
+                      ),
                       const SizedBox(height: 20),
-                      SizedBox(width: double.infinity, height: 50, child: ElevatedButton(onPressed: _processPayment, style: ElevatedButton.styleFrom(backgroundColor: Colors.white), child: const Text("PLACE ORDER", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold))))
+                      ElevatedButton(
+                        onPressed: _processPayment, 
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: AppColors.primaryBlack),
+                        child: const Text("PLACE ORDER")
+                      )
                     ],
                   ),
                 ),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'product.dart';
 
 class ProductProvider with ChangeNotifier {
@@ -60,5 +59,4 @@ class ProductProvider with ChangeNotifier {
     await FirebaseFirestore.instance.collection('products_v4').doc(id).delete();
   }
 }
-
-final productProvider = ProductProvider();
+// تم حذف productProvider العالمي

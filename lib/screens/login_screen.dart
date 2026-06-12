@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/user_provider.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -9,25 +10,54 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _isLoading = false;
+
+  Future<void> _handleLogin() async {
+    if (_phoneController.text.isEmpty || _passwordController.text.isEmpty) return;
+
+    setState(() => _isLoading = true);
+    
+    // استخدام context.read للوصول للـ Provider بشكل احترافي
+    final success = await context.read<UserProvider>().login(
+      _phoneController.text, 
+      _passwordController.text
+    );
+
+    setState(() => _isLoading = false);
+
+    if (success) {
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Welcome back!")),
+        );
+      }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Invalid credentials or account not verified")),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Login")),
-      body: SingleChildScrollView(
+      appBar: AppBar(title: const Text("Sign In")),
+      body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           children: [
-            const Icon(Icons.lock_person_outlined, size: 80, color: Colors.black),
+            const Icon(Icons.lock_outline, size: 60, color: Colors.black),
             const SizedBox(height: 30),
             TextField(
               controller: _phoneController,
               keyboardType: TextInputType.phone,
               decoration: const InputDecoration(
-                labelText: "Phone Number (01xxxxxxxxx)", 
+                labelText: "Phone Number",
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.phone),
               ),
@@ -37,45 +67,18 @@ class _LoginScreenState extends State<LoginScreen> {
               controller: _passwordController,
               obscureText: true,
               decoration: const InputDecoration(
-                labelText: "Password", 
+                labelText: "Password",
                 border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.lock_outline),
+                prefixIcon: Icon(Icons.lock),
               ),
             ),
             const SizedBox(height: 30),
-            SizedBox(
-              width: double.infinity,
-              height: 55,
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : () async {
-                  if (_phoneController.text.isEmpty || _passwordController.text.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Please fill all fields")));
-                    return;
-                  }
-
-                  setState(() => _isLoading = true);
-                  
-                  // انتظار الرد من السيرفر (Async Login)
-                  bool success = await userProvider.login(_phoneController.text, _passwordController.text);
-                  
-                  if (mounted) {
-                    setState(() => _isLoading = false);
-                    if (success) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Login Successful!")));
-                      Navigator.pop(context);
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Invalid Phone or Password, or Account not verified")),
-                      );
-                    }
-                  }
-                },
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
-                child: _isLoading 
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text("LOGIN", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              ),
-            ),
+            _isLoading 
+              ? const CircularProgressIndicator(color: Colors.black)
+              : ElevatedButton(
+                  onPressed: _handleLogin,
+                  child: const Text("LOGIN"),
+                ),
           ],
         ),
       ),

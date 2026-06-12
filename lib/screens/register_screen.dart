@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/user_provider.dart';
+import '../config/app_colors.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -18,6 +20,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     bool isAr = Localizations.localeOf(context).languageCode == 'ar';
+    final userProvider = context.read<UserProvider>();
 
     return Scaffold(
       appBar: AppBar(title: Text(isAr ? "فتح حساب" : "Create Account")),
@@ -27,16 +30,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
           key: _formKey,
           child: Column(
             children: [
-              const Icon(Icons.person_add_outlined, size: 60, color: Colors.black),
+              const Icon(Icons.person_add_outlined, size: 60, color: AppColors.primaryBlack),
               const SizedBox(height: 20),
               TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
-                  labelText: isAr ? "الاسم بالكامل (رباعي) *" : "Full Name (Quadruple) *",
+                  labelText: isAr ? "الاسم بالكامل *" : "Full Name *",
                   border: const OutlineInputBorder(),
                   prefixIcon: const Icon(Icons.person),
                 ),
-                validator: (value) => value!.isEmpty ? (isAr ? "الاسم مطلوب" : "Full name is required") : null,
+                validator: (value) => value!.isEmpty ? (isAr ? "مطلوب" : "Required") : null,
               ),
               const SizedBox(height: 15),
               TextFormField(
@@ -51,7 +54,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 validator: (value) {
                   if (value == null || value.isEmpty) return isAr ? "مطلوب" : "Required";
                   if (!RegExp(r'^(010|011|012|015)[0-9]{8}$').hasMatch(value)) {
-                    return isAr ? "أدخل رقم مصري صحيح" : "Enter a valid Egyptian number (01x...)";
+                    return isAr ? "رقم غير صحيح" : "Invalid Egyptian number";
                   }
                   return null;
                 },
@@ -65,45 +68,40 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   border: const OutlineInputBorder(),
                   prefixIcon: const Icon(Icons.lock),
                 ),
-                validator: (value) => value!.length < 6 ? (isAr ? "6 أحرف على الأقل" : "Minimum 6 characters") : null,
+                validator: (value) => value!.length < 6 ? (isAr ? "6 أحرف على الأقل" : "Min 6 chars") : null,
               ),
-              const SizedBox(height: 25),
-              SizedBox(
-                width: double.infinity,
-                height: 55,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : () async {
-                    if (_formKey.currentState!.validate()) {
-                      setState(() => _isLoading = true);
-                      if (userProvider.isUserExists(_phoneController.text)) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(isAr ? "رقم الهاتف مسجل بالفعل!" : "Phone number already exists!")),
+              const SizedBox(height: 30),
+              _isLoading 
+                ? const CircularProgressIndicator(color: AppColors.primaryBlack)
+                : ElevatedButton(
+                    onPressed: () async {
+                      if (_formKey.currentState!.validate()) {
+                        setState(() => _isLoading = true);
+                        if (userProvider.isUserExists(_phoneController.text)) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(isAr ? "الرقم مسجل بالفعل" : "Number already exists!"))
+                          );
+                          setState(() => _isLoading = false);
+                          return;
+                        }
+                        
+                        // تسجيل ودخول فوري بدون طلب كود تفعيل
+                        await userProvider.registerUser(
+                          _nameController.text, 
+                          _phoneController.text, 
+                          _passwordController.text
                         );
-                        setState(() => _isLoading = false);
-                        return;
-                      }
-                      
-                      // تسجيل العميل مباشرة بدون طلب كود تفعيل بناءً على طلبك
-                      await userProvider.registerUser(
-                        _nameController.text, 
-                        _phoneController.text, 
-                        _passwordController.text
-                      );
 
-                      if (mounted) {
-                        Navigator.pop(context); // العودة للرئيسية
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(isAr ? "أهلاً بك! تم إنشاء حسابك بنجاح." : "Welcome! Your account has been created.")),
-                        );
+                        if (mounted) {
+                          Navigator.pop(context); // العودة للرئيسية
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(isAr ? "أهلاً بك في بيرفيكتو!" : "Welcome to Perfecto!"))
+                          );
+                        }
                       }
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
-                  child: _isLoading 
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : Text(isAr ? "تسجيل" : "REGISTER", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                ),
-              ),
+                    },
+                    child: Text(isAr ? "إنشاء حساب" : "REGISTER"),
+                  ),
             ],
           ),
         ),

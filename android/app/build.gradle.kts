@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.perfecto"
+    namespace = "com.mahmoud.perfecto"
     compileSdk = 36
 
     compileOptions {
@@ -20,13 +20,11 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.perfecto"
-        minSdk = flutter.minSdkVersion 
+        applicationId = "com.mahmoud.perfecto"
+        minSdk = 21 
         targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-        // تفعيل MultiDex لدعم المكتبات الكثيرة
-        multiDexEnabled = true
     }
 
     buildTypes {
