@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "305319926935",
+    "project_id": "perfecto-pro",
+    "storage_bucket": "perfecto-pro.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:305319926935:android:6186d08fae675f356b9dd2",
+        "android_client_info": {
+          "package_name": "com.example.perfecto"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDZQxRD3rm1yfmQ24pgcF3cyFamc5K0-QE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

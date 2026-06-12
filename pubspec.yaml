@@ -1,0 +1,42 @@
+name: perfecto
+description: The official application for Perfecto Brand.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+  shared_preferences: ^2.2.2
+  url_launcher: ^6.2.1
+  cached_network_image: ^3.3.1
+  firebase_core: ^3.10.1
+  firebase_auth: ^5.4.1
+  cloud_firestore: ^5.6.1
+  firebase_messaging: ^15.2.1
+  flutter_local_notifications: ^17.2.2
+  google_fonts: ^6.2.1
+  http: ^1.2.1 # مكتبة الاتصال بالإنترنت و API
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/logo.png.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/logo.png.png"
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/logo.png.png
